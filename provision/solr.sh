@@ -4,35 +4,65 @@
 # Setup Solr
 #
 
+# Solr version to be installed
+SOLR_VERSION="8.11.1" # use "8.11.1" or "9.8.1"
+SOLR_TAR="solr-$SOLR_VERSION.tgz"
+SOLR_URL="https://archive.apache.org/dist/lucene/solr/$SOLR_VERSION/$SOLR_TAR"
+
 # Exit on first error
 set -e
 
 # Print shell commands
 set -o verbose
 
-# Install Solr 8.2.0
-installSolr () {
+# Determine the appropriate branch in the https://github.com/vivo-project/vivo-solr repository
+SOLR_MAJOR_VERSION=$(echo $SOLR_VERSION | cut -d'.' -f1)
+case $SOLR_MAJOR_VERSION in
+  "8")
+    SOLR_BRANCH="solr-8.11"
+    ;;
+  "9")
+    SOLR_BRANCH="solr-9.8.1"
+    ;;
+  *)
+    echo "Unsupported Solr major version: $SOLR_MAJOR_VERSION"
+    exit 1
+    ;;
+esac
 
-  echo '*           soft    nofile           65000' >> /etc/security/limits.conf
+# Install Solr
+# see <https://wiki.lyrasis.org/display/VIVODOC115x/Installing+VIVO#InstallingVIVO-ConfigureandStartSolr>
+# see <https://github.com/vivo-project/vivo-solr/blob/main/README.md>
+installSolr () {
+  echo "Installing Solr v$SOLR_VERSION"
+
+  echo '*           soft    nofile          65000' >> /etc/security/limits.conf
   echo '*           hard    nproc           65000' >> /etc/security/limits.conf
 
-  curl -O http://archive.apache.org/dist/lucene/solr/8.2.0/solr-8.2.0.tgz
+  if ! [ -f "$SOLR_TAR" ] || ! [ -s "$SOLR_TAR" ]; then
+    echo "Getting: $SOLR_URL"
+    wget -q --show-progress --progress=bar:force $SOLR_URL -O $SOLR_TAR
+  fi
 
-  mkdir /opt/solr || true
-  tar xzvf solr-8.2.0.tgz -C /opt/solr --strip-components=1
+  mkdir -p /opt/solr || true
+  tar xzvf $SOLR_TAR -C /opt/solr --strip-components=1 --no-same-owner
 
   mkdir -p /opt/solr/server/solr || true
   
   cd /home/vagrant
-  git clone https://github.com/vivo-community/vivo-solr.git vivo-solr || true
+
+  if ! [ -d "vivo-solr" ]; then
+    git clone -b $SOLR_BRANCH https://github.com/vivo-project/vivo-solr.git vivo-solr || true
+  fi
+
   cp -R vivo-solr/vivocore /opt/solr/server/solr
 
   /opt/solr/bin/solr start -force
-  /opt/solr/bin/solr stop
 
-  rm /opt/solr/server/solr/vivocore/conf/schema.xml || true 
-  
-  /opt/solr/bin/solr start -force
+  SOLR_SCHEMA="/opt/solr/server/solr/vivocore/conf/schema.xml"
+  if test -f SOLR_SCHEMA; then
+    rm SOLR_SCHEMA || true 
+  fi
 }
 
 installSolr

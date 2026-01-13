@@ -1,4 +1,8 @@
 .vagrant*
 *~
+solr/*
 src/*
 work/*
+
+# Other
+**/.DS_Store

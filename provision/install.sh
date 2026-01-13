@@ -4,11 +4,23 @@
 # Install VIVO.
 #
 
+# Defines the VIVO & Vitro branches (and thus versions) to be used
+BRANCH="rel-1.15-maint"
+
 # Exit on first error
 set -e
 
 # Print shell commands
 set -o verbose
+
+# Extract the version number (or any number) from the branch name
+VERSION=$(echo "$BRANCH" | grep -o -E '\d+(\.\d+\.?\d*)?') || true
+VERSION=$(echo "$VERSION" | tr -d '.') || true
+VIVO_DATABASE="vivodev"
+export VIVO_DATABASE
+# TODO: it would be nice to also adopt the VIVO database names in
+#       `reset_vivo_db.sh` and `vivo/runtime.properties` dynamically,
+#       then use `VIVO_DATABASE="vivo${VERSION}dev"`
 
 # Make data directory
 mkdir -p /opt/vivo
@@ -60,8 +72,8 @@ setupTomcat() {
 }
 
 setupMySQL() {
-  mysql --user=root --password=vivo -e "CREATE DATABASE vivo110dev CHARACTER SET utf8;" || true
-  mysql --user=root --password=vivo -e "GRANT ALL ON vivo110dev.* TO 'vivo'@'localhost' IDENTIFIED BY 'vivo';"
+  mysql --user=root --password=vivo -e "CREATE DATABASE ${VIVO_DATABASE} CHARACTER SET utf8;" || true
+  mysql --user=root --password=vivo -e "GRANT ALL ON ${VIVO_DATABASE}.* TO 'vivo'@'localhost' IDENTIFIED BY 'vivo';"
 }
 
 installVIVO() {
@@ -70,7 +82,6 @@ installVIVO() {
   echo 'tomcat           hard    nproc           1500' >> /etc/security/limits.conf
 
   # Vivo
-  BRANCH=rel-1.11.0-RC
   cd /home/vagrant/src
   git clone https://github.com/vivo-project/Vitro.git Vitro --depth 1 -b ${BRANCH} || true
   git clone https://github.com/vivo-project/VIVO.git VIVO --depth 1 -b ${BRANCH} || true
@@ -109,7 +120,7 @@ setupTomcat
 # Set a log alias
 setLogAlias
 
-# Stop tomcat
+# Start tomcat
 systemctl start tomcat
 
 echo VIVO installed.

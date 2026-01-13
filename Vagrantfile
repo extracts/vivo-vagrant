@@ -1,6 +1,16 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# This Vagrantfile was adopted for use with Apple Silicon-based Macs
+# and VMware Fusion as a provider.
+
+$help = <<SCRIPT
+echo "Access VIVO and Solr in your browser on the host machine:"
+echo "  VIVO: http://localhost:8080/vivo"
+echo "  Solr: http://localhost:8983/solr"
+echo "Log into the VM using 'vagrant ssh' and logout using 'logout'."
+SCRIPT
+
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
@@ -13,7 +23,7 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "hashicorp-vagrant/ubuntu-16.04"
+  config.vm.box = "bento/ubuntu-22.04" # arm64 (Apple Silicon) & amd64
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -43,17 +53,17 @@ Vagrant.configure("2") do |config|
   # your network.
   # config.vm.network "public_network"
 
-  # Share an additional folder to the guest VM. The first argument is
+  # Share additional folder(s) to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
   config.vm.synced_folder "provision", "/home/vagrant/provision"
   config.vm.synced_folder "src", "/home/vagrant/src"
   config.vm.synced_folder "work", "/work"
+  config.vm.synced_folder "solr", "/opt/solr/server"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
-  # Example for VirtualBox:
   
   config.vm.provider "virtualbox" do |vb|
     # Display the VirtualBox GUI when booting the machine
@@ -64,11 +74,15 @@ Vagrant.configure("2") do |config|
     vb.memory = "4096"
   end
 
-  config.vm.provider "vmware_fusion" do |v,override|
+  config.vm.provider "vmware_desktop" do |v,override|
     v.gui = false
     v.vmx["numvcpus"] = "1"
     v.vmx["memsize"] = "4096"
   end
+
+  # Use VMware Fusion as the default provider for Vagrant (as it can emulate
+  # ARM instructions on Apple Silicon-based Macs)
+  ENV['VAGRANT_DEFAULT_PROVIDER'] = 'vmware_desktop'
 
   # Setup box
   config.vm.provision "bootstrap", type: "shell", path: "provision/bootstrap.sh", privileged: true
@@ -78,5 +92,8 @@ Vagrant.configure("2") do |config|
 
   # Install VIVO
   config.vm.provision "vivo", type: "shell", path: "provision/install.sh", privileged: true
+
+  # Print basic usage information
+  config.vm.provision "info", type: "shell", privileged: false, run: "always", inline: $help
 
 end
