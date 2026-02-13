@@ -52,6 +52,7 @@ installSolr () {
   cd /home/vagrant
 
   if ! [ -d "vivo-solr" ]; then
+    echo "Cloning Solr branch: $SOLR_BRANCH"
     git clone -b $SOLR_BRANCH https://github.com/vivo-project/vivo-solr.git vivo-solr || true
   fi
 

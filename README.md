@@ -26,6 +26,7 @@ This Vagrant box is intended for development and experimentation only.  Change d
 ~~~
 $ git clone -b v1.15-arm64 git@github.com:extracts/vivo-vagrant.git vivo-vagrant
 $ cd vivo-vagrant
+$ mkdir solr
 $ vagrant up
 ~~~
 

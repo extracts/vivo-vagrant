@@ -60,6 +60,9 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "provision", "/home/vagrant/provision"
   config.vm.synced_folder "src", "/home/vagrant/src"
   config.vm.synced_folder "work", "/work"
+
+  # NOTE: This synced folder requires a "solr" folder to be created on the host,
+  # next to this Vagrantfile
   config.vm.synced_folder "solr", "/opt/solr/server"
 
   # Provider-specific configuration so you can fine-tune various
