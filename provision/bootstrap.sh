@@ -48,9 +48,9 @@ installMySQL () {
 # Install Tomcat 9
 installTomcat () {
   # Tomcat 9 version to be installed
-  TOMCAT_VERSION="9.0.113"
+  TOMCAT_VERSION="9.0.115"
   TOMCAT_TAR="apache-tomcat-$TOMCAT_VERSION.tar.gz"
-  TOMCAT_URL="https://dlcdn.apache.org/tomcat/tomcat-9/v$TOMCAT_VERSION/bin/$TOMCAT_TAR"
+  TOMCAT_URL="https://archive.apache.org/dist/tomcat/tomcat-9/v$TOMCAT_VERSION/bin/$TOMCAT_TAR"
 
   groupadd tomcat || true
   useradd -s /bin/false -g tomcat -d /opt/tomcat tomcat || true
