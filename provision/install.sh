@@ -4,8 +4,13 @@
 # Install VIVO.
 #
 
+# Defines the VIVO & Vitro repositories to be used
+VIVOREPO="https://github.com/extracts/VIVO.git"
+VITROREPO="https://github.com/vivo-project/Vitro.git"
+
 # Defines the VIVO & Vitro branches (and thus versions) to be used
-BRANCH="rel-1.15-maint"
+VIVOBRANCH="rel-1.15-maint"
+VITROBRANCH="rel-1.15-maint"
 
 # Exit on first error
 set -e
@@ -14,7 +19,7 @@ set -e
 set -o verbose
 
 # Extract the version number (or any number) from the branch name
-VERSION=$(echo "$BRANCH" | grep -o -E '\d+(\.\d+\.?\d*)?') || true
+VERSION=$(echo "$VIVOBRANCH" | grep -o -E '\d+(\.\d+\.?\d*)?') || true
 VERSION=$(echo "$VERSION" | tr -d '.') || true
 VIVO_DATABASE="vivodev"
 export VIVO_DATABASE
@@ -83,8 +88,16 @@ installVIVO() {
 
   # Vivo
   cd /home/vagrant/src
-  git clone https://github.com/vivo-project/Vitro.git Vitro --depth 1 -b ${BRANCH} || true
-  git clone https://github.com/vivo-project/VIVO.git VIVO --depth 1 -b ${BRANCH} || true
+
+  if ! [ -d "Vitro" ]; then
+    echo "Cloning Vitro branch $VITROBRANCH from $VITROREPO"
+    git clone --depth 1 -b ${VITROBRANCH} ${VITROREPO} Vitro || true
+  fi
+
+  if ! [ -d "VIVO" ]; then
+    echo "Cloning VIVO branch $VIVOBRANCH from $VIVOREPO"
+    git clone --depth 1 -b ${VIVOBRANCH} ${VIVOREPO} VIVO || true
+  fi
 
   cd VIVO
   mvn clean install -DskipTests -s /home/vagrant/provision/vivo/settings.xml
